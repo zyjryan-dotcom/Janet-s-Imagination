@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>亲子中文对话</title>
+    <title>亲子中文对话 - 父母问，孩子答</title>
     <style>
         body {
             text-align: center;
@@ -11,12 +11,31 @@
             font-size: 24px;
             margin: 0;
             padding: 20px;
-            background-color: #f9f9f9;
+            background-color: #f0f8ff;
             color: #333;
         }
-        h2 {
-            margin: 30px 0 20px;
+        h1 {
             color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .question-btn {
+            display: block;
+            width: 90%;
+            max-width: 600px;
+            margin: 25px auto;
+            padding: 20px 30px;
+            font-size: 28px;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            background-color: #e74c3c;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .question-btn:active {
+            background-color: #c0392b;
+            transform: scale(0.97);
         }
         .answer-btn {
             display: block;
@@ -27,130 +46,141 @@
             font-size: 26px;
             border: none;
             border-radius: 12px;
-            background-color: #4CAF50;
+            background-color: #27ae60;
             color: white;
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .answer-btn:active {
-            background-color: #45a049;
+            background-color: #219653;
             transform: scale(0.98);
         }
         #result {
             margin: 30px 0;
-            min-height: 60px;
-            font-size: 28px;
+            min-height: 70px;
+            font-size: 26px;
             font-weight: bold;
-            color: #e74c3c;
         }
         .control-btn {
             font-size: 22px;
-            margin: 10px 8px;
-            padding: 12px 28px;
+            margin: 12px 8px;
+            padding: 14px 32px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             background-color: #3498db;
             color: white;
             cursor: pointer;
         }
-        .control-btn:active {
-            background-color: #2980b9;
-        }
         .speak-btn {
-            background-color: #e67e22;
-        }
-        .speak-btn:active {
-            background-color: #d35400;
+            background-color: #f39c12;
         }
     </style>
 </head>
 <body>
-    <h2 id="question">你饿了吗？</h2>
-    
-    <button id="btn1" class="answer-btn">我饿了</button>
-    <button id="btn2" class="answer-btn">我不饿</button>
+    <h1>亲子中文对话</h1>
+    <p style="color:#7f8c8d; font-size:20px;">父母点问题 → 电脑读给孩子听 → 孩子选答案</p>
+
+    <button id="questionBtn" class="question-btn">点击这里问孩子问题</button>
     
     <p id="result"></p>
     
-    <button id="speakBtn" class="control-btn speak-btn">🔊 读出来</button>
+    <button id="btn1" class="answer-btn" style="display:none;">选项1</button>
+    <button id="btn2" class="answer-btn" style="display:none;">选项2</button>
+
+    <br>
+    <button id="speakAnswerBtn" class="control-btn speak-btn" style="display:none;">🔊 再读一遍孩子的回答</button>
     <br><br>
     <button id="nextBtn" class="control-btn">下一句 →</button>
 
     <script>
-        // Dialogue data - easy to add more later
         let data = [
             { q: "你饿了吗？", a: ["我饿了", "我不饿"] },
             { q: "你想喝什么？", a: ["我想喝水", "我想喝牛奶"] },
             { q: "你开心吗？", a: ["我很开心", "我不开心"] },
-            { q: "今天天气怎么样？", a: ["今天天气很好", "今天下雨了"] }
+            { q: "今天天气怎么样？", a: ["今天天气很好", "今天下雨了"] },
+            { q: "你想玩什么？", a: ["我想玩积木", "我想看书"] }
         ];
 
         let index = 0;
-        let selected = "";
+        let selectedAnswer = "";
 
-        // Get elements
-        const questionEl = document.getElementById("question");
+        const questionBtn = document.getElementById("questionBtn");
         const resultEl = document.getElementById("result");
         const btn1 = document.getElementById("btn1");
         const btn2 = document.getElementById("btn2");
-        const speakBtn = document.getElementById("speakBtn");
+        const speakAnswerBtn = document.getElementById("speakAnswerBtn");
         const nextBtn = document.getElementById("nextBtn");
 
-        function choose(text) {
-            selected = text;
-            resultEl.innerHTML = `你说：<span style="color:#27ae60;">${text}</span>`;
-        }
+        function speak(text, isQuestion = false) {
+            if (!('speechSynthesis' in window)) return;
 
-        function speak() {
-            if (selected === "") {
-                resultEl.innerHTML = "请先选择一个答案哦~";
-                return;
-            }
-
-            // Stop any previous speech
             speechSynthesis.cancel();
 
-            const msg = new SpeechSynthesisUtterance(selected);
+            const msg = new SpeechSynthesisUtterance(text);
             msg.lang = "zh-CN";
-            msg.rate = 0.85;   // Slower and clearer for kids
-            msg.pitch = 1.1;   // Slightly higher, friendlier voice
-
-            msg.onerror = function() {
-                resultEl.innerHTML += "<br>（朗读失败，浏览器可能不支持中文语音）";
-            };
+            msg.rate = isQuestion ? 0.9 : 0.85;   // Questions slightly faster
+            msg.pitch = isQuestion ? 1.05 : 1.1;
 
             speechSynthesis.speak(msg);
         }
 
-        function updateQuestion() {
-            questionEl.textContent = data[index].q;
+        function showQuestion() {
+            const current = data[index];
             
-            btn1.textContent = data[index].a[0];
-            btn2.textContent = data[index].a[1];
-
-            // Reset selection
+            questionBtn.textContent = current.q;
             resultEl.innerHTML = "";
-            selected = "";
+            selectedAnswer = "";
+
+            // Show answer buttons
+            btn1.style.display = "block";
+            btn2.style.display = "block";
+            btn1.textContent = current.a[0];
+            btn2.textContent = current.a[1];
+
+            speakAnswerBtn.style.display = "none";
+
+            // Auto read the question to the kid
+            setTimeout(() => {
+                speak(current.q, true);
+            }, 300);
+        }
+
+        function choose(text) {
+            selectedAnswer = text;
+            resultEl.innerHTML = `孩子说：<span style="color:#27ae60; font-size:28px;">${text}</span>`;
+
+            // Auto read the child's answer
+            setTimeout(() => {
+                speak(text);
+            }, 400);
+
+            speakAnswerBtn.style.display = "inline-block";
         }
 
         function next() {
             index = (index + 1) % data.length;
-            updateQuestion();
+            showQuestion();
         }
 
-        // Initialize everything
+        // Event listeners
         function init() {
-            // Bind click events safely
+            questionBtn.addEventListener("click", () => {
+                speak(questionBtn.textContent, true);
+            });
+
             btn1.addEventListener("click", () => choose(data[index].a[0]));
             btn2.addEventListener("click", () => choose(data[index].a[1]));
-            
-            speakBtn.addEventListener("click", speak);
+
+            speakAnswerBtn.addEventListener("click", () => {
+                if (selectedAnswer) speak(selectedAnswer);
+            });
+
             nextBtn.addEventListener("click", next);
 
-            updateQuestion();   // Show the first question
+            // Start with first question
+            showQuestion();
         }
 
-        // Run when page loads
         window.onload = init;
     </script>
 </body>
