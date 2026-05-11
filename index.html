@@ -3,190 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>亲子中文对话</title>
+    <title>亲子中文对话学习</title>
     <style>
+        :root {
+            --bg: #f0f8ff;
+            --q-red: #e74c3c;
+            --a-green: #27ae60;
+            --btn-blue: #3498db;
+            --text-dark: #2c3e50;
+        }
+
         body {
             text-align: center;
-            font-family: "Microsoft YaHei", Arial, sans-serif;
-            font-size: 24px;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f0f8ff;
+            background-color: var(--bg);
             color: #333;
+            -webkit-tap-highlight-color: transparent;
         }
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 8px;
+
+        /* 初始遮罩层 */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--btn-blue); color: white;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1000; cursor: pointer;
         }
-        .subtitle {
-            color: #7f8c8d;
-            font-size: 18px;
-            margin-bottom: 25px;
+
+        h1 { color: var(--text-dark); margin-bottom: 5px; font-size: 28px; }
+        .subtitle { color: #7f8c8d; font-size: 16px; margin-bottom: 20px; padding: 0 10px; }
+
+        .container { max-width: 600px; margin: 0 auto; }
+
+        /* 问题按钮 */
+        .question-box {
+            background-color: var(--q-red);
+            color: white;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(231, 76, 60, 0.3);
+            transition: transform 0.1s;
         }
-        .question-btn {
-            display: block;
-            width: 90%;
-            max-width: 620px;
-            margin: 25px auto;
-            padding: 25px 30px;
-            font-size: 28px;
-            font-weight: bold;
-            line-height: 1.4;
+        .question-box:active { transform: scale(0.96); }
+        .q-text { font-size: 32px; font-weight: bold; display: block; line-height: 1.2; }
+        .e-text { font-size: 18px; display: block; margin-top: 10px; opacity: 0.9; font-weight: normal; }
+
+        /* 答案区域 */
+        #answer-area { margin-bottom: 30px; display: flex; flex-direction: column; gap: 15px; }
+        .answer-btn {
+            background-color: var(--a-green);
+            color: white;
+            padding: 18px;
+            font-size: 24px;
             border: none;
             border-radius: 15px;
-            background-color: #e74c3c;
-            color: white;
             cursor: pointer;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.2);
+            transition: all 0.2s;
         }
-        .question-btn:active {
-            transform: scale(0.97);
+        .answer-btn:active { transform: scale(0.96); background-color: #219150; }
+        .answer-btn.selected { border: 4px solid #fff; box-shadow: 0 0 15px rgba(39, 174, 96, 0.5); }
+
+        #result-display {
+            min-height: 40px; font-size: 24px; font-weight: bold; color: var(--a-green);
+            margin-bottom: 20px;
         }
-        .english {
-            display: block;
-            font-size: 18px;
-            font-weight: normal;
-            margin-top: 10px;
-            opacity: 0.9;
+
+        .controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .ctrl-btn {
+            padding: 12px 25px; font-size: 18px; border-radius: 10px; border: none;
+            cursor: pointer; color: white; background-color: var(--btn-blue);
         }
-        .answer-btn {
-            display: block;
-            width: 90%;
-            max-width: 520px;
-            margin: 15px auto;
-            padding: 18px 20px;
-            font-size: 26px;
-            border: none;
-            border-radius: 12px;
-            background-color: #27ae60;
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .answer-btn:active {
-            background-color: #219653;
-            transform: scale(0.98);
-        }
-        #result {
-            margin: 35px 0;
-            min-height: 70px;
-            font-size: 27px;
-            font-weight: bold;
-        }
-        .control-btn {
-            font-size: 22px;
-            margin: 12px 8px;
-            padding: 14px 32px;
-            border: none;
-            border-radius: 10px;
-            background-color: #3498db;
-            color: white;
-            cursor: pointer;
-        }
-        .speak-btn {
-            background-color: #f39c12;
-        }
+        .repeat-btn { background-color: #f39c12; }
+        .next-btn { background-color: var(--text-dark); }
+        
+        .footer-info { margin-top: 30px; font-size: 14px; color: #bdc3c7; }
     </style>
 </head>
 <body>
-    <h1>亲子中文对话</h1>
-    <p class="subtitle">父母点击红色按钮问问题 → 电脑读给孩子听 → 孩子选择答案</p>
 
-    <button id="questionBtn" class="question-btn">
-        你饿了吗？
-        <span class="english">Are you hungry?</span>
-    </button>
-    
-    <p id="result"></p>
-    
-    <button id="btn1" class="answer-btn" style="display: none;">我饿了</button>
-    <button id="btn2" class="answer-btn" style="display: none;">我不饿</button>
+    <div id="start-overlay" onclick="startApp()">
+        <span style="font-size: 60px;">📢</span>
+        <h2 style="margin-top: 20px;">点击屏幕开始学习</h2>
+        <p>Click to start the voice interaction</p>
+    </div>
 
-    <br><br>
-    <button id="speakAnswerBtn" class="control-btn speak-btn" style="display: none;">🔊 再读一遍孩子的回答</button>
-    <br><br>
-    <button id="nextBtn" class="control-btn">下一句 →</button>
+    <div class="container">
+        <h1>亲子中文对话</h1>
+        <p class="subtitle">父母点红色提问，孩子选绿色回答</p>
+
+        <div id="question-box" class="question-box">
+            <span id="q-zh" class="q-text">加载中...</span>
+            <span id="q-en" class="e-text">Loading...</span>
+        </div>
+
+        <div id="result-display"></div>
+        <div id="answer-area"></div>
+
+        <div class="controls">
+            <button id="repeat-btn" class="ctrl-btn repeat-btn" style="display: none;">🔊 再读一次</button>
+            <button onclick="nextStep()" class="ctrl-btn next-btn">下一句 →</button>
+        </div>
+
+        <p class="footer-info">适合 Lawrence & Kansas 地区亲子练习</p>
+    </div>
 
     <script>
-        let data = [
+        const studyData = [
             { q: "你饿了吗？", e: "Are you hungry?", a: ["我饿了", "我不饿"] },
             { q: "他是谁？", e: "Who is he?", a: ["他是我哥哥", "他是我爸爸"] },
-            { q: "你叫什么名字？", e: "What is your name?", a: ["我叫Sophia", "我叫___"] },
+            { q: "你叫什么名字？", e: "What is your name?", a: ["我叫Sophia", "我叫小明"] },
             { q: "你今天怎么样？", e: "How are you today?", a: ["我很开心", "我很累"] },
             { q: "今天天气怎么样？", e: "How is the weather today?", a: ["今天晴天", "今天下雨"] },
-            { q: "你住在哪里？", e: "Where do you live?", a: ["我住在Lawrence", "我住在家里", "我住在Kansas"] }
+            { q: "你住在哪里？", e: "Where do you live?", a: ["我住在Lawrence", "我住在Kansas", "我住在家里"] }
         ];
 
-        let index = 0;
-        let selectedAnswer = "";
+        let currentIndex = 0;
+        let currentSelected = "";
+        let synth = window.speechSynthesis;
 
-        const questionBtn = document.getElementById("questionBtn");
-        const resultEl = document.getElementById("result");
-        const btn1 = document.getElementById("btn1");
-        const btn2 = document.getElementById("btn2");
-        const speakAnswerBtn = document.getElementById("speakAnswerBtn");
-        const nextBtn = document.getElementById("nextBtn");
+        function startApp() {
+            document.getElementById('start-overlay').style.display = 'none';
+            // 解决 iOS 首次播放静音的 Hack
+            const silence = new SpeechSynthesisUtterance("");
+            synth.speak(silence);
+            showCurrent();
+        }
 
-        function speak(text, isQuestion = false) {
-            if (!('speechSynthesis' in window)) return;
-            speechSynthesis.cancel();
+        function speak(text, rate = 0.9) {
+            synth.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = "zh-CN";
-            msg.rate = isQuestion ? 0.9 : 0.85;
-            msg.pitch = isQuestion ? 1.05 : 1.1;
-            speechSynthesis.speak(msg);
+            msg.rate = rate;
+            
+            // 尝试获取更自然的中文语音
+            const voices = synth.getVoices();
+            const cnVoice = voices.find(v => v.lang.includes('zh') && v.name.includes('Xiaoxiao')) || 
+                            voices.find(v => v.lang.includes('zh'));
+            if (cnVoice) msg.voice = cnVoice;
+            
+            synth.speak(msg);
         }
 
-        function showQuestion() {
-            const current = data[index];
+        function showCurrent() {
+            const data = studyData[currentIndex];
+            document.getElementById('q-zh').textContent = data.q;
+            document.getElementById('q-en').textContent = data.e;
+            document.getElementById('result-display').textContent = "";
+            document.getElementById('repeat-btn').style.display = 'none';
+            
+            const area = document.getElementById('answer-area');
+            area.innerHTML = "";
+            currentSelected = "";
 
-            // 更新红色问题按钮（中英文）
-            questionBtn.innerHTML = `${current.q}<span class="english">${current.e}</span>`;
-
-            resultEl.innerHTML = "";
-            selectedAnswer = "";
-
-            // 显示答案按钮（固定显示两个按钮）
-            btn1.style.display = "block";
-            btn2.style.display = "block";
-            btn1.textContent = current.a[0];
-            btn2.textContent = current.a[1] || "";   // 如果没有第二个答案就留空
-
-            speakAnswerBtn.style.display = "none";
-
-            // 自动朗读问题
-            setTimeout(() => speak(current.q, true), 400);
-        }
-
-        function choose(text) {
-            selectedAnswer = text;
-            resultEl.innerHTML = `孩子说：<span style="color:#27ae60;">${text}</span>`;
-
-            setTimeout(() => speak(text), 500);
-            speakAnswerBtn.style.display = "inline-block";
-        }
-
-        function next() {
-            index = (index + 1) % data.length;
-            showQuestion();
-        }
-
-        // 初始化
-        function init() {
-            questionBtn.addEventListener("click", () => speak(data[index].q, true));
-            btn1.addEventListener("click", () => choose(data[index].a[0]));
-            btn2.addEventListener("click", () => choose(data[index].a[1]));
-
-            speakAnswerBtn.addEventListener("click", () => {
-                if (selectedAnswer) speak(selectedAnswer);
+            // 动态生成答案按钮（支持 2 个、3 个甚至更多）
+            data.a.forEach(text => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = text;
+                btn.onclick = () => selectAnswer(text, btn);
+                area.appendChild(btn);
             });
 
-            nextBtn.addEventListener("click", next);
-
-            showQuestion();
+            // 自动读问题
+            setTimeout(() => speak(data.q, 0.9), 300);
         }
 
-        window.onload = init;
+        function selectAnswer(text, btnEl) {
+            currentSelected = text;
+            
+            // UI 反馈
+            document.querySelectorAll('.answer-btn').forEach(b => b.classList.remove('selected'));
+            btnEl.classList.add('selected');
+            document.getElementById('result-display').textContent = `孩子说：${text}`;
+            document.getElementById('repeat-btn').style.display = 'inline-block';
+
+            // 朗读
+            speak(text, 0.85);
+        }
+
+        function nextStep() {
+            currentIndex = (currentIndex + 1) % studyData.length;
+            showCurrent();
+        }
+
+        // 绑定提问框点击再读
+        document.getElementById('question-box').onclick = () => {
+            speak(studyData[currentIndex].q, 0.9);
+        };
+
+        // 绑定重复朗读按钮
+        document.getElementById('repeat-btn').onclick = () => {
+            if (currentSelected) speak(currentSelected, 0.85);
+        };
+
+        // 预加载语音包
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => synth.getVoices();
+        }
     </script>
 </body>
 </html>
