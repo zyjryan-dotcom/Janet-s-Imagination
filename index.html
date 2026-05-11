@@ -1,209 +1,230 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>亲子中文对话学习</title>
-    <style>
-        :root {
-            --bg: #f0f8ff;
-            --q-red: #e74c3c;
-            --a-green: #27ae60;
-            --btn-blue: #3498db;
-            --text-dark: #2c3e50;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>亲子中文对话学习</title>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sky: #fef9f0;
+      --cloud: #ffffff;
+      --peach: #ffb347;
+      --coral: #ff7043;
+      --mint: #4caf8a;
+      --mint-dark: #388e6a;
+      --lavender: #9c77d4;
+      --lavender-dark: #7b5bbb;
+      --text: #3a2e2e;
+      --soft: #a09090;
+      --card-shadow: 0 10px 35px rgba(60,30,10,0.12);
+    }
 
-        body {
-            text-align: center;
-            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: var(--bg);
-            color: #333;
-            -webkit-tap-highlight-color: transparent;
-        }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-        /* 初始遮罩层 */
-        #start-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--btn-blue); color: white;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 1000; cursor: pointer;
-        }
+    body {
+      background: var(--sky);
+      font-family: 'Noto Sans SC', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-image: 
+        radial-gradient(circle at 10% 20%, #ffe0b2 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, #e8f5e9 0%, transparent 40%);
+      overflow: hidden;
+    }
 
-        h1 { color: var(--text-dark); margin-bottom: 5px; font-size: 28px; }
-        .subtitle { color: #7f8c8d; font-size: 16px; margin-bottom: 20px; padding: 0 10px; }
+    /* 启动层：解决发声限制 */
+    #start-shield {
+      position: fixed; inset: 0; background: var(--peach); z-index: 1000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: white; cursor: pointer; text-align: center;
+    }
 
-        .container { max-width: 600px; margin: 0 auto; }
+    /* 漂浮装饰 */
+    .deco { position: fixed; font-size: 2.2rem; opacity: 0.2; pointer-events: none; animation: float 6s ease-in-out infinite; z-index: 1; }
+    .deco:nth-child(1) { top: 10%; left: 5%; }
+    .deco:nth-child(2) { top: 15%; right: 8%; animation-delay: 1s; }
+    .deco:nth-child(3) { bottom: 12%; left: 10%; animation-delay: 2s; }
+    .deco:nth-child(4) { bottom: 20%; right: 7%; animation-delay: 3s; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
-        /* 问题按钮 */
-        .question-box {
-            background-color: var(--q-red);
-            color: white;
-            padding: 25px;
-            border-radius: 20px;
-            margin-bottom: 30px;
-            cursor: pointer;
-            box-shadow: 0 6px 15px rgba(231, 76, 60, 0.3);
-            transition: transform 0.1s;
-        }
-        .question-box:active { transform: scale(0.96); }
-        .q-text { font-size: 32px; font-weight: bold; display: block; line-height: 1.2; }
-        .e-text { font-size: 18px; display: block; margin-top: 10px; opacity: 0.9; font-weight: normal; }
+    .card {
+      background: var(--cloud); border-radius: 32px; box-shadow: var(--card-shadow);
+      padding: 30px 25px; max-width: 550px; width: 100%; text-align: center;
+      position: relative; z-index: 10;
+    }
 
-        /* 答案区域 */
-        #answer-area { margin-bottom: 30px; display: flex; flex-direction: column; gap: 15px; }
-        .answer-btn {
-            background-color: var(--a-green);
-            color: white;
-            padding: 18px;
-            font-size: 24px;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.2);
-            transition: all 0.2s;
-        }
-        .answer-btn:active { transform: scale(0.96); background-color: #219150; }
-        .answer-btn.selected { border: 4px solid #fff; box-shadow: 0 0 15px rgba(39, 174, 96, 0.5); }
+    /* 进度条 */
+    .progress-bar { display: flex; gap: 6px; justify-content: center; margin-bottom: 25px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: #eee; transition: 0.3s; }
+    .dot.active { background: var(--peach); transform: scale(1.3); }
+    .dot.done { background: var(--mint); }
 
-        #result-display {
-            min-height: 40px; font-size: 24px; font-weight: bold; color: var(--a-green);
-            margin-bottom: 20px;
-        }
+    /* 问题区域 */
+    .q-box { margin-bottom: 30px; cursor: pointer; padding: 10px; border-radius: 20px; transition: 0.2s; }
+    .q-box:hover { background: #fffcf5; }
+    #q-zh { font-family: 'Ma Shan Zheng', cursive; font-size: 2.5rem; color: var(--text); display: block; line-height: 1.2; }
+    #q-en { font-size: 1.1rem; color: var(--soft); margin-top: 8px; display: block; }
 
-        .controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .ctrl-btn {
-            padding: 12px 25px; font-size: 18px; border-radius: 10px; border: none;
-            cursor: pointer; color: white; background-color: var(--btn-blue);
-        }
-        .repeat-btn { background-color: #f39c12; }
-        .next-btn { background-color: var(--text-dark); }
-        
-        .footer-info { margin-top: 30px; font-size: 14px; color: #bdc3c7; }
-    </style>
+    /* 答案区域 */
+    .answers { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
+    .ans-btn {
+      font-family: 'Ma Shan Zheng', cursive; font-size: 1.8rem; padding: 18px;
+      border-radius: 18px; border: 3px solid transparent; cursor: pointer;
+      background: #f8f4ef; color: var(--text); transition: 0.2s;
+    }
+    .ans-btn.selected {
+      background: var(--mint); color: white; border-color: var(--mint-dark);
+      transform: translateY(-2px); box-shadow: 0 5px 15px rgba(76,175,138,0.3);
+    }
+    /* 为第二个答案设置不同颜色 */
+    .ans-btn:nth-child(2).selected { background: var(--lavender); border-color: var(--lavender-dark); box-shadow: 0 5px 15px rgba(156,119,212,0.3); }
+
+    #feedback { min-height: 1.5em; font-size: 1.3rem; font-weight: bold; color: var(--mint-dark); margin-bottom: 20px; }
+
+    .btn-next {
+      background: linear-gradient(135deg, var(--peach), var(--coral));
+      color: white; border: none; padding: 15px 40px; border-radius: 50px;
+      font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s;
+      box-shadow: 0 4px 12px rgba(255,112,67,0.3);
+    }
+    .btn-next:active { transform: scale(0.95); }
+
+    .reading { animation: pulse 1s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+    footer { margin-top: 25px; font-size: 0.85rem; color: var(--soft); z-index: 10; }
+  </style>
 </head>
 <body>
 
-    <div id="start-overlay" onclick="startApp()">
-        <span style="font-size: 60px;">📢</span>
-        <h2 style="margin-top: 20px;">点击屏幕开始学习</h2>
-        <p>Click to start the voice interaction</p>
+  <div id="start-shield" onclick="initAudio()">
+    <div style="font-size: 5rem; margin-bottom: 20px;">🐼</div>
+    <h2>点击开始中文练习</h2>
+    <p style="margin-top: 10px; opacity: 0.9;">Click to Start</p>
+  </div>
+
+  <div class="deco">🌸</div><div class="deco">⭐</div>
+  <div class="deco">🌈</div><div class="deco">🎈</div>
+
+  <div class="card">
+    <div class="progress-bar" id="progress"></div>
+
+    <div class="q-box" onclick="repeatQuestion()">
+      <span id="q-zh">正在准备...</span>
+      <span id="q-en">Ready...</span>
     </div>
 
-    <div class="container">
-        <h1>亲子中文对话</h1>
-        <p class="subtitle">父母点红色提问，孩子选绿色回答</p>
+    <div id="feedback"></div>
 
-        <div id="question-box" class="question-box">
-            <span id="q-zh" class="q-text">加载中...</span>
-            <span id="q-en" class="e-text">Loading...</span>
-        </div>
+    <div class="answers" id="ans-list"></div>
 
-        <div id="result-display"></div>
-        <div id="answer-area"></div>
+    <button class="btn-next" onclick="goNext()">下一句 →</button>
+  </div>
 
-        <div class="controls">
-            <button id="repeat-btn" class="ctrl-btn repeat-btn" style="display: none;">🔊 再读一次</button>
-            <button onclick="nextStep()" class="ctrl-btn next-btn">下一句 →</button>
-        </div>
+  <footer>Lawrence & Kansas 亲子中文课专用 ✨</footer>
 
-        <p class="footer-info">适合 Lawrence & Kansas 地区亲子练习</p>
-    </div>
+  <script>
+    const dialogs = [
+      { q: "你饿了吗？", e: "Are you hungry?", a: ["我饿了", "我不饿"] },
+      { q: "他是谁？", e: "Who is he?", a: ["他是我哥哥", "他是我爸爸"] },
+      { q: "你叫什么名字？", e: "What is your name?", a: ["我叫Sophia", "我叫小明"] },
+      { q: "你今天怎么样？", e: "How are you today?", a: ["我很开心", "我很累"] },
+      { q: "今天天气怎么样？", e: "How is the weather today?", a: ["今天晴天", "今天下雨"] },
+      { q: "你住在哪里？", e: "Where do you live?", a: ["我住在Lawrence", "我住在Kansas", "我住在家里"] }
+    ];
 
-    <script>
-        const studyData = [
-            { q: "你饿了吗？", e: "Are you hungry?", a: ["我饿了", "我不饿"] },
-            { q: "他是谁？", e: "Who is he?", a: ["他是我哥哥", "他是我爸爸"] },
-            { q: "你叫什么名字？", e: "What is your name?", a: ["我叫Sophia", "我叫小明"] },
-            { q: "你今天怎么样？", e: "How are you today?", a: ["我很开心", "我很累"] },
-            { q: "今天天气怎么样？", e: "How is the weather today?", a: ["今天晴天", "今天下雨"] },
-            { q: "你住在哪里？", e: "Where do you live?", a: ["我住在Lawrence", "我住在Kansas", "我住在家里"] }
-        ];
+    let currentIdx = 0;
+    let synth = window.speechSynthesis;
 
-        let currentIndex = 0;
-        let currentSelected = "";
-        let synth = window.speechSynthesis;
+    function initAudio() {
+      // 必须由用户点击触发一次 speak
+      const s = new SpeechSynthesisUtterance("");
+      synth.speak(s);
+      
+      document.getElementById('start-shield').style.display = 'none';
+      render();
+    }
 
-        function startApp() {
-            document.getElementById('start-overlay').style.display = 'none';
-            // 解决 iOS 首次播放静音的 Hack
-            const silence = new SpeechSynthesisUtterance("");
-            synth.speak(silence);
-            showCurrent();
-        }
+    function render() {
+      const item = dialogs[currentIdx];
+      
+      // 更新进度
+      const prog = document.getElementById('progress');
+      prog.innerHTML = dialogs.map((_, i) => 
+        `<div class="dot ${i === currentIdx ? 'active' : (i < currentIdx ? 'done' : '')}"></div>`
+      ).join('');
 
-        function speak(text, rate = 0.9) {
-            synth.cancel();
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = "zh-CN";
-            msg.rate = rate;
-            
-            // 尝试获取更自然的中文语音
-            const voices = synth.getVoices();
-            const cnVoice = voices.find(v => v.lang.includes('zh') && v.name.includes('Xiaoxiao')) || 
-                            voices.find(v => v.lang.includes('zh'));
-            if (cnVoice) msg.voice = cnVoice;
-            
-            synth.speak(msg);
-        }
+      // 更新问题
+      const qZh = document.getElementById('q-zh');
+      qZh.textContent = item.q;
+      document.getElementById('q-en').textContent = item.e;
+      
+      // 更新答案列表
+      const list = document.getElementById('ans-list');
+      list.innerHTML = "";
+      item.a.forEach(text => {
+        const btn = document.createElement('button');
+        btn.className = 'ans-btn';
+        btn.textContent = text;
+        btn.onclick = () => handleSelect(text, btn);
+        list.appendChild(btn);
+      });
 
-        function showCurrent() {
-            const data = studyData[currentIndex];
-            document.getElementById('q-zh').textContent = data.q;
-            document.getElementById('q-en').textContent = data.e;
-            document.getElementById('result-display').textContent = "";
-            document.getElementById('repeat-btn').style.display = 'none';
-            
-            const area = document.getElementById('answer-area');
-            area.innerHTML = "";
-            currentSelected = "";
+      document.getElementById('feedback').textContent = "";
+      qZh.classList.add('reading');
+      speak(item.q, () => qZh.classList.remove('reading'));
+    }
 
-            // 动态生成答案按钮（支持 2 个、3 个甚至更多）
-            data.a.forEach(text => {
-                const btn = document.createElement('button');
-                btn.className = 'answer-btn';
-                btn.textContent = text;
-                btn.onclick = () => selectAnswer(text, btn);
-                area.appendChild(btn);
-            });
+    function handleSelect(text, btn) {
+      document.querySelectorAll('.ans-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      
+      const fb = document.getElementById('feedback');
+      fb.textContent = `你说：${text} 🔊`;
+      fb.classList.add('reading');
+      
+      speak(text, () => {
+        fb.textContent = `你说：${text} ✅`;
+        fb.classList.remove('reading');
+      });
+    }
 
-            // 自动读问题
-            setTimeout(() => speak(data.q, 0.9), 300);
-        }
+    function speak(text, onEnd) {
+      synth.cancel();
+      const msg = new SpeechSynthesisUtterance(text);
+      msg.lang = 'zh-CN';
+      msg.rate = 0.85;
+      
+      // 寻找最自然的中文语音包
+      const voices = synth.getVoices();
+      const cnVoice = voices.find(v => v.name.includes('Xiaoxiao')) || 
+                      voices.find(v => v.lang.includes('zh'));
+      if (cnVoice) msg.voice = cnVoice;
 
-        function selectAnswer(text, btnEl) {
-            currentSelected = text;
-            
-            // UI 反馈
-            document.querySelectorAll('.answer-btn').forEach(b => b.classList.remove('selected'));
-            btnEl.classList.add('selected');
-            document.getElementById('result-display').textContent = `孩子说：${text}`;
-            document.getElementById('repeat-btn').style.display = 'inline-block';
+      msg.onend = onEnd;
+      synth.speak(msg);
+    }
 
-            // 朗读
-            speak(text, 0.85);
-        }
+    function repeatQuestion() {
+      const qZh = document.getElementById('q-zh');
+      qZh.classList.add('reading');
+      speak(dialogs[currentIdx].q, () => qZh.classList.remove('reading'));
+    }
 
-        function nextStep() {
-            currentIndex = (currentIndex + 1) % studyData.length;
-            showCurrent();
-        }
+    function goNext() {
+      currentIdx = (currentIdx + 1) % dialogs.length;
+      render();
+    }
 
-        // 绑定提问框点击再读
-        document.getElementById('question-box').onclick = () => {
-            speak(studyData[currentIndex].q, 0.9);
-        };
-
-        // 绑定重复朗读按钮
-        document.getElementById('repeat-btn').onclick = () => {
-            if (currentSelected) speak(currentSelected, 0.85);
-        };
-
-        // 预加载语音包
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = () => synth.getVoices();
-        }
-    </script>
+    // 确保语音包加载
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = () => synth.getVoices();
+    }
+  </script>
 </body>
 </html>
